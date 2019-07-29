@@ -1,2 +1,1 @@
-# nginx-cache-poc
-POC using nginx cache
+# RPaaS test app

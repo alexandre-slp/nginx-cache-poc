@@ -1,0 +1,48 @@
+version: '3.7'
+networks:
+  default_network:
+    driver: bridge
+
+services:
+  proxy:
+    container_name: proxy-rpaas_test
+    hostname: proxy-rpaas_test
+    networks:
+      default_network:
+        aliases:
+          - proxy-rpaas_test
+    image: nginx:alpine
+    volumes:
+      - ./nginx/local.conf:/etc/nginx/nginx.conf
+      - ./nginx/test.conf:/etc/nginx/test.conf
+    depends_on:
+      - rpaas
+    ports:
+      - '8080:80'
+
+  rpaas:
+    container_name: rpaas_test
+    hostname: rpaas_test
+    networks:
+      default_network:
+        aliases:
+          - rpaas_test
+    ports:
+      - '8000:8000'
+    volumes:
+      - ./:/rpaas_test
+    build:
+      context: ./
+      args:
+        - HTTP_PROXY
+        - HTTPS_PROXY
+        - NO_PROXY
+    environment:
+      - GUNICORN_MAX_REQUESTS=10000
+      - GUNICORN_WORKERS=1
+      - HOST=0.0.0.0
+      - LOG_LEVEL=DEBUG
+      - PORT=8000
+      - PYTHONUNBUFFERED=1
+      - FLASK_APP=app.py
+    command: honcho start
